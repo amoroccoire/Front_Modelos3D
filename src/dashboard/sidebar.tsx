@@ -18,7 +18,7 @@ interface SidebarProps {
 
 export function Sidebar({ onSelectModel }: SidebarProps) {
   const [models, setModels] = useState<Model[]>([
-    { name: 'Model Name 1', url: 'https://example.com/model1.glb' },
+    { name: 'Test', url: 'https://277a-34-74-154-43.ngrok-free.app/download/Figure_of_Victory_1214181117_obj.zip' },
     { name: 'Model Name 2', url: 'https://example.com/model2.glb' },
     { name: 'Model Name 3', url: 'https://example.com/model3.glb' },
     { name: 'Model Name 4', url: 'https://example.com/model4.glb' },
