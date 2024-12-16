@@ -49,21 +49,45 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
 
   const handleUpload = async () => {
     if (!selectedFiles.length) return;
-
+  
     setIsUploading(true);
-    // Simular tiempo de subida
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsUploading(false);
-    setIsSuccess(true);
-
-    // Resetear después de mostrar éxito
-    setTimeout(() => {
-      setIsSuccess(false);
-      setSelectedFiles([]);
-      setPreviews([]);
-      onOpenChange(false);
-    }, 1500);
+  
+    // Crear un FormData y agregar el primer archivo
+    const formData = new FormData();
+    formData.append("file", selectedFiles[0]);
+  
+    try {
+      // Realizar la solicitud POST
+      const response = await fetch("https://93b7-34-125-87-224.ngrok-free.app/upload", {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        mode: 'cors',
+        redirect :'manual',
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        setIsSuccess(true);
+  
+        // Resetear después de mostrar éxito
+        setTimeout(() => {
+          setIsSuccess(false);
+          setSelectedFiles([]);
+          setPreviews([]);
+          onOpenChange(false);
+        }, 1500);
+      } else {
+        console.error("Error al subir el archivo");
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+    } finally {
+      setIsUploading(false);
+    }
   };
+  
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
