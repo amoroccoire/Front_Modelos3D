@@ -119,7 +119,12 @@ export function Sidebar({ onSelectModel }: SidebarProps) {
                 primary={model.name}
                 primaryTypographyProps={{
                   variant: 'body2',
-                  sx: { fontSize: 14 },
+                  sx: { 
+                    fontSize: 14,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis',
+                  },
                 }}
               />
               <ListItemSecondaryAction
