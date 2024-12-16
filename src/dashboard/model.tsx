@@ -1,100 +1,91 @@
-import React, { useEffect, useState } from "react";
-import JSZip from "jszip";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader";
-import { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight } from "three";
+'use client';
+import { Suspense } from 'react';
+import { useLoader } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
+import { Box, Typography } from '@mui/material';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { useEffect, useState } from 'react';
 
-interface ZipModelViewerProps {
-  zipUrl: string; // URL del archivo .zip
+interface ModelProps {
+  url: string;
 }
 
-export const Model: React.FC<ZipModelViewerProps> = ({ zipUrl }) => {
-  const [loading, setLoading] = useState(true);
+export function Model({ url }: ModelProps) {
+  const [gltf, setGltf] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadModelFromZip = async () => {
+    if (!url) return;
+
+    let isMounted = true;
+
+    const loadModel = async () => {
       try {
-        setLoading(true);
-
-        const response = await fetch(zipUrl, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-          },
-          method: 'GET',
-          redirect :'manual',
-        });
-        console.log("Respuesta del fetch:", response);
-        if (!response.ok) {
-          throw new Error(`Fetch falló con status: ${response.status}`);
+        url = url.toString();
+        let loadedGltf = await useLoader(GLTFLoader, url);
+        if (isMounted) {
+          setGltf(loadedGltf);
         }
-        console.log(response);
-        console.log("EN RESPONSE de obtener oj y mt file")
-        const zipBlob = await response.blob();
-        const zip = await JSZip.loadAsync(zipBlob);
-        console.log("ANTES de obtener oj y mt file");
-        // Buscar los archivos .obj y .mtl en el archivo zip
-        const objFile = Object.keys(zip.files).find((file) => file.endsWith(".obj"));
-        const mtlFile = Object.keys(zip.files).find((file) => file.endsWith(".mtl"));
-        console.log("Despues de obtener oj y mt file");
-        if (!objFile || !mtlFile) {
-          throw new Error("No se encontraron archivos .obj o .mtl en el zip.");
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error loading model:", err);
+          setError("Error al cargar el modelo");
         }
-
-        // Leer los archivos .mtl y .obj
-        const mtlContent = await zip.files[mtlFile].async("text");
-        const objContent = await zip.files[objFile].async("text");
-
-        // Crear la escena Three.js
-        const scene = new Scene();
-        const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Cargar materiales con MTLLoader
-        const mtlLoader = new MTLLoader();
-        const materials = mtlLoader.parse(mtlContent, "");
-        materials.preload();
-
-        // Cargar modelo .obj con OBJLoader
-        const objLoader = new OBJLoader();
-        objLoader.setMaterials(materials);
-        const obj = objLoader.parse(objContent);
-
-        // Agregar modelo y luz a la escena
-        scene.add(obj);
-        const light = new AmbientLight(0xffffff, 0.5);
-        scene.add(light);
-
-        // Configurar cámara y renderizar
-        camera.position.z = 5;
-        const animate = () => {
-          requestAnimationFrame(animate);
-          renderer.render(scene, camera);
-        };
-        animate();
-
-        setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
-        setLoading(false);
       }
     };
 
-    loadModelFromZip();
+    loadModel();
 
     return () => {
-      // Limpia el canvas al desmontar el componente
-      const canvas = document.querySelector("canvas");
-      if (canvas) {
-        document.body.removeChild(canvas);
-      }
+      isMounted = false; // Cancela si el componente se desmonta
     };
-  }, [zipUrl]);
+  }, [url]);
 
-  if (loading) return <p>Cargando modelo...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (!url) {
+    return (
+      <Html center>
+        <Typography>Esperando modelo...</Typography>
+      </Html>
+    );
+  }
 
-  return null; // El modelo se renderiza directamente en el canvas
-};
+  if (error) {
+    return (
+      <Html center>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            bgcolor: 'transparent',
+            p: 2,
+            borderRadius: 1,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="error"
+            sx={{ fontWeight: 'bold', textAlign: 'center' }}
+          >
+            {error}
+          </Typography>
+        </Box>
+      </Html>
+    );
+  }
+
+  if (!gltf) {
+    return (
+      <Html center>
+        <Typography>Cargando modelo...</Typography>
+      </Html>
+    );
+  }
+
+  return  (
+    <Suspense fallback={<div>Cargando...</div>}>
+    <primitive object={gltf.scene} scale={[1, 1, 1]} />
+  </Suspense>
+  );
+  
+}

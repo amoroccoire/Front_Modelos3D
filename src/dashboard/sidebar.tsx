@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, IconButton, List, ListItem, ListItemText, ListItemSecondaryAction } from '@mui/material';
 import { Plus, Share2 } from 'lucide-react';
 import { UploadDialog } from './upload-dialog';
 import { ShareDialog } from './share-dialog';
 import { ModelActionsDropdown } from './model-actions-dropdown';
+import { cos } from 'three/tsl';
 
 interface Model {
   name: string;
@@ -17,19 +18,44 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onSelectModel }: SidebarProps) {
-  const [models, setModels] = useState<Model[]>([
-    { name: 'Test', url: 'https://277a-34-74-154-43.ngrok-free.app/download/Figure_of_Victory_1214181117_obj.zip' },
-    { name: 'Model Name 2', url: 'https://example.com/model2.glb' },
-    { name: 'Model Name 3', url: 'https://example.com/model3.glb' },
-    { name: 'Model Name 4', url: 'https://example.com/model4.glb' },
-    { name: 'Model Name 6', url: 'https://example.com/model6.glb' },
-    { name: 'Model Name 7', url: 'https://example.com/model7.glb' },
-    { name: 'Model Name 8', url: 'https://example.com/model8.glb' },
-    { name: 'Model Name 9', url: 'https://example.com/model9.glb' },
-  ]);
+  const [models, setModels] = useState<Model[]>([]); //lista que contiene los modelos
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedModelUrl, setSelectedModelUrl] = useState<string>('');
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch("https://93b7-34-125-87-224.ngrok-free.app/todos", {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+          method: 'GET',
+          mode: 'cors',
+          redirect :'manual'
+        });
+        if (!response.ok) {
+          throw new Error('Error al obtener la lista de modelos');
+        }
+        const data = await response.text();
+        const jsonResponse = JSON.parse(data);
+
+        // Filtra solo los archivos .glb y construye el estado
+        const glbModels = jsonResponse.files
+          .filter((file: { filename: string }) => file.filename.endsWith('.glb'))
+          .map((file: { filename: string }) => ({
+            name: file.filename,
+            url: `https://93b7-34-125-87-224.ngrok-free.app/download/${file.filename}`,
+          }));
+
+        setModels(glbModels);
+      } catch (error) {
+        console.error('Error al cargar los modelos:', error);
+      }
+    };
+
+    fetchModels();
+  }, []);
 
   const handleShare = (url: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evita seleccionar el modelo al hacer clic en "Share"

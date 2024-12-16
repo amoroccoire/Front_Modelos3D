@@ -6,7 +6,7 @@ import { Viewer3D } from './viewer-3d';
 import { UserMenu } from './user-menu';
 import { Box } from '@mui/material';
 
-const initialModelUrl = 'https://example.com/model1.glb';
+const initialModelUrl = '';
 
 export default function DashboardPage() {
   const [selectedModelUrl, setSelectedModelUrl] = useState(initialModelUrl);
@@ -43,7 +43,20 @@ export default function DashboardPage() {
         </Box>
 
         {/* Visor 3D */}
-        <Viewer3D modelUrl={selectedModelUrl} />
+        {selectedModelUrl ? (
+          <Viewer3D modelUrl={selectedModelUrl} />
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
+            <p>Selecciona un modelo para visualizarlo</p>
+          </Box>
+        )}
       </Box>
     </Box>
   );
