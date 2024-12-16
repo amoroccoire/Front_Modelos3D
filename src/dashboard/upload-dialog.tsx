@@ -196,7 +196,7 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
           {isUploading ? (
             <CircularProgress size={20} sx={{ color: "white", mr: 1 }} />
           ) : (
-            "SUBIR"
+            ""
           )}
           {isUploading ? "SUBIENDO..." : "SUBIR"}
         </Button>
