@@ -18,12 +18,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onSelectModel }: SidebarProps) {
-  const [models, setModels] = useState<Model[]>([]); //lista que contiene los modelos
+  const [models, setModels] = useState<Model[]>([
+    {name:'Figure of victory', url:'https://d1uf8ackqiyuzm.cloudfront.net/Figure_of_victory_2.glb'}
+  ]); //lista que contiene los modelos
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [selectedModelUrl, setSelectedModelUrl] = useState<string>('');
 
-  useEffect(() => {
+  /*useEffect(() => {
     const fetchModels = async () => {
       try {
         const response = await fetch("https://93b7-34-125-87-224.ngrok-free.app/todos", {
@@ -55,7 +57,7 @@ export function Sidebar({ onSelectModel }: SidebarProps) {
     };
 
     fetchModels();
-  }, []);
+  }, []);*/
 
   const handleShare = (url: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evita seleccionar el modelo al hacer clic en "Share"
